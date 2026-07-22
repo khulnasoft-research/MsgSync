@@ -34,24 +34,24 @@ export function ChartContainer({
       transition={{ duration: 0.3, delay }}
       className="h-full"
     >
-      <div className="h-full rounded-xl border border-neutral-700 bg-neutral-800/50 backdrop-blur-sm p-6 hover:border-neutral-600 transition-all">
+      <div className="h-full rounded-2xl border border-neutral-700 bg-gradient-to-br from-neutral-800/40 to-neutral-800/20 backdrop-blur-sm p-6 hover:border-neutral-600 transition-all hover:shadow-lg hover:shadow-neutral-900/50">
         <div className="flex items-start justify-between mb-6">
-          <div>
-            <h3 className="text-lg font-semibold text-neutral-100">{title}</h3>
-            {subtitle && <p className="text-sm text-neutral-400 mt-1">{subtitle}</p>}
+          <div className="flex-1">
+            <h3 className="text-xl font-bold text-white">{title}</h3>
+            {subtitle && <p className="text-sm text-neutral-400 mt-2 font-medium">{subtitle}</p>}
           </div>
         </div>
 
         {tabs && tabs.length > 0 && (
-          <div className="flex gap-2 mb-6 border-b border-neutral-700">
+          <div className="flex gap-1 mb-6 p-1 bg-neutral-700/30 rounded-lg w-fit">
             {tabs.map((tab) => (
               <button
                 key={tab}
                 onClick={() => handleTabChange(tab)}
-                className={`px-4 py-2 text-sm font-medium transition-all border-b-2 -mb-px ${
+                className={`px-3 py-1.5 text-sm font-semibold transition-all rounded-md ${
                   activeTab === tab
-                    ? 'text-brand border-brand'
-                    : 'text-neutral-400 border-transparent hover:text-neutral-300'
+                    ? 'text-white bg-neutral-600/80 shadow-md'
+                    : 'text-neutral-400 hover:text-neutral-300 hover:bg-neutral-700/30'
                 }`}
               >
                 {tab}

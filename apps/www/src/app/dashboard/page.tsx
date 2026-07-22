@@ -14,6 +14,9 @@ import {
 } from 'lucide-react';
 import { StatCard } from '@/components/StatCard';
 import { ChartContainer } from '@/components/ChartContainer';
+import { PlatformFeatures } from '@/components/PlatformFeatures';
+import { TopClients } from '@/components/TopClients';
+import { SystemStatus } from '@/components/SystemStatus';
 
 interface DashboardStats {
   totalMessages: number;
@@ -329,52 +332,51 @@ export default function DashboardPage() {
           </BarChart>
         </ResponsiveContainer>
       </ChartContainer>
-            <BarChart data={stats.campaignPerformance}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" />
-              <YAxis />
-              <Tooltip />
-              <Bar dataKey="sent" fill="#3ECF8E" name="Sent" />
-              <Bar dataKey="delivered" fill="#3ECF8E" opacity={0.5} name="Delivered" />
-            </BarChart>
-          </ResponsiveContainer>
+
+      {/* Top Clients & Platforms Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Top Clients */}
+        <div className="rounded-2xl border border-neutral-700 bg-neutral-800/30 backdrop-blur-sm p-6">
+          <TopClients />
+        </div>
+
+        {/* Platform Features */}
+        <div className="rounded-2xl border border-neutral-700 bg-neutral-800/30 backdrop-blur-sm p-6">
+          <PlatformFeatures />
         </div>
       </div>
 
-      {/* Quick Actions */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <h2 className="font-heading font-semibold text-lg mb-4">Quick Actions</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <button className="flex items-center gap-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-            <div className="h-10 w-10 rounded-lg bg-brand/10 flex items-center justify-center">
-      </ChartContainer>
+      {/* System Status */}
+      <div className="rounded-2xl border border-neutral-700 bg-neutral-800/30 backdrop-blur-sm p-6">
+        <SystemStatus />
+      </div>
 
       {/* Quick Actions */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <button className="flex items-center gap-4 p-5 rounded-lg bg-neutral-800/50 border border-neutral-700 hover:border-brand/50 hover:bg-neutral-800 transition-all group">
-          <div className="h-12 w-12 rounded-lg bg-brand/10 flex items-center justify-center group-hover:bg-brand/20">
-            <MessageSquareText className="h-5 w-5 text-brand" />
+        <button className="flex items-center gap-4 p-5 rounded-xl bg-gradient-to-br from-blue-500/10 to-blue-600/5 border border-blue-500/20 hover:border-blue-500/40 hover:from-blue-500/15 hover:to-blue-600/10 hover:shadow-lg hover:shadow-blue-500/10 transition-all group">
+          <div className="h-12 w-12 rounded-lg bg-blue-500/20 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+            <MessageSquareText className="h-5 w-5 text-blue-400" />
           </div>
           <div className="text-left">
-            <h3 className="font-medium text-sm text-neutral-100">Send Message</h3>
+            <h3 className="font-semibold text-sm text-white">Send Message</h3>
             <p className="text-xs text-neutral-400">Create a new message</p>
           </div>
         </button>
-        <button className="flex items-center gap-4 p-5 rounded-lg bg-neutral-800/50 border border-neutral-700 hover:border-accent/50 hover:bg-neutral-800 transition-all group">
-          <div className="h-12 w-12 rounded-lg bg-accent/10 flex items-center justify-center group-hover:bg-accent/20">
-            <Zap className="h-5 w-5 text-accent" />
+        <button className="flex items-center gap-4 p-5 rounded-xl bg-gradient-to-br from-purple-500/10 to-purple-600/5 border border-purple-500/20 hover:border-purple-500/40 hover:from-purple-500/15 hover:to-purple-600/10 hover:shadow-lg hover:shadow-purple-500/10 transition-all group">
+          <div className="h-12 w-12 rounded-lg bg-purple-500/20 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+            <Zap className="h-5 w-5 text-purple-400" />
           </div>
           <div className="text-left">
-            <h3 className="font-medium text-sm text-neutral-100">New Campaign</h3>
+            <h3 className="font-semibold text-sm text-white">New Campaign</h3>
             <p className="text-xs text-neutral-400">Start a marketing campaign</p>
           </div>
         </button>
-        <button className="flex items-center gap-4 p-5 rounded-lg bg-neutral-800/50 border border-neutral-700 hover:border-success/50 hover:bg-neutral-800 transition-all group">
-          <div className="h-12 w-12 rounded-lg bg-success/10 flex items-center justify-center group-hover:bg-success/20">
-            <Users className="h-5 w-5 text-success" />
+        <button className="flex items-center gap-4 p-5 rounded-xl bg-gradient-to-br from-emerald-500/10 to-emerald-600/5 border border-emerald-500/20 hover:border-emerald-500/40 hover:from-emerald-500/15 hover:to-emerald-600/10 hover:shadow-lg hover:shadow-emerald-500/10 transition-all group">
+          <div className="h-12 w-12 rounded-lg bg-emerald-500/20 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+            <Users className="h-5 w-5 text-emerald-400" />
           </div>
           <div className="text-left">
-            <h3 className="font-medium text-sm text-neutral-100">Add Contact</h3>
+            <h3 className="font-semibold text-sm text-white">Add Contact</h3>
             <p className="text-xs text-neutral-400">Import new contacts</p>
           </div>
         </button>
