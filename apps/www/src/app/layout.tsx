@@ -1,10 +1,15 @@
-import { DashboardLayout } from '@/lib/layout';
-import DashboardPage from './dashboard/page';
+import type { Metadata } from 'next';
+import './globals.css';
 
-export default function DashboardWrapper() {
-  return (
-    <DashboardLayout>
-      <DashboardPage />
-    </DashboardLayout>
-  );
+export const metadata: Metadata = {
+    title: 'MsgSync - Enterprise Messaging Platform',
+    description: 'Complete SMS, voice, and WhatsApp marketing platform'
+};
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+    return (
+        <html lang="en">
+            <body>{children}</body>
+        </html>
+    );
 }
