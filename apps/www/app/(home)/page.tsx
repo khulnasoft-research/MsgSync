@@ -1,6 +1,14 @@
-import { FrameworksSection } from './_components/FrameworksSection'
-import { HomeContent } from './_components/HomeContent'
+'use client';
+
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
 export default function HomePage() {
-  return <HomeContent frameworksSlot={<FrameworksSection />} />
+  const router = useRouter();
+
+  useEffect(() => {
+    router.replace('/dashboard');
+  }, [router]);
+
+  return null;
 }

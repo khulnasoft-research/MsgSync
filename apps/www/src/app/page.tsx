@@ -2,9 +2,9 @@ import Link from 'next/link';
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-neutral-900">
       {/* Header */}
-      <header className="border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 sticky top-0 z-50">
+      <header className="border-b border-neutral-700 bg-neutral-800/95 backdrop-blur supports-[backdrop-filter]:bg-neutral-800/60 sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <Link href="/" className="flex items-center gap-2">
@@ -14,17 +14,17 @@ export default function HomePage() {
               <span className="font-heading font-semibold text-xl">MsgSync</span>
             </Link>
             <nav className="hidden md:flex items-center gap-8">
-              <Link href="/dashboard" className="text-sm font-medium text-foreground/70 hover:text-foreground transition-colors">Dashboard</Link>
-              <Link href="/campaigns" className="text-sm font-medium text-foreground/70 hover:text-foreground transition-colors">Campaigns</Link>
-              <Link href="/analytics" className="text-sm font-medium text-foreground/70 hover:text-foreground transition-colors">Analytics</Link>
-              <Link href="/contacts" className="text-sm font-medium text-foreground/70 hover:text-foreground transition-colors">Contacts</Link>
-              <Link href="/billing" className="text-sm font-medium text-foreground/70 hover:text-foreground transition-colors">Billing</Link>
+              <Link href="/dashboard" className="text-sm font-medium text-neutral-300 hover:text-neutral-100 transition-colors">Dashboard</Link>
+              <Link href="/campaigns" className="text-sm font-medium text-neutral-300 hover:text-neutral-100 transition-colors">Campaigns</Link>
+              <Link href="/analytics" className="text-sm font-medium text-neutral-300 hover:text-neutral-100 transition-colors">Analytics</Link>
+              <Link href="/contacts" className="text-sm font-medium text-neutral-300 hover:text-neutral-100 transition-colors">Contacts</Link>
+              <Link href="/billing" className="text-sm font-medium text-neutral-300 hover:text-neutral-100 transition-colors">Billing</Link>
             </nav>
             <div className="flex items-center gap-4">
-              <Link href="/login" className="text-sm font-medium text-foreground/70 hover:text-foreground transition-colors">Sign In</Link>
+              <Link href="/login" className="text-sm font-medium text-neutral-300 hover:text-neutral-100 transition-colors">Sign In</Link>
               <Link 
                 href="/login" 
-                className="rounded-lg bg-brand px-4 py-2 text-sm font-medium text-white hover:bg-brand/90 transition-colors"
+                className="rounded-lg bg-brand px-4 py-2 text-sm font-medium text-white hover:bg-brand-dark transition-colors"
               >
                 Get Started
               </Link>
