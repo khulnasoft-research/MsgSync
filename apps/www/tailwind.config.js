@@ -1,7 +1,11 @@
 /** @type {import('tailwindcss').Config} */
+const sharedConfig = require('@msgsync/ui/tailwind.config');
+
 module.exports = {
+    presets: [sharedConfig.default || sharedConfig],
     content: [
         './src/**/*.{js,ts,jsx,tsx,mdx}',
+        '../../packages/ui/src/**/*.{js,ts,jsx,tsx,mdx}',
     ],
     theme: {
         extend: {
@@ -9,7 +13,7 @@ module.exports = {
                 brand: '#2563eb',
                 'brand-light': '#3b82f6',
                 'brand-dark': '#1e40af',
-                accent: '#a855f7',
+                'accent': '#a855f7',
                 'accent-light': '#c084fc',
                 foreground: '#f3f4f6',
                 background: '#111827',

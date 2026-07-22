@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import { Skeleton as UISkeleton } from '@msgsync/ui';
 
 interface SkeletonProps {
   className?: string;
@@ -11,10 +11,7 @@ export function Skeleton({ className = '', count = 1 }: SkeletonProps) {
     return (
         <>
             {Array.from({ length: count }).map((_, i) => (
-                <div
-                    key={i}
-                    className={`animate-pulse rounded-lg bg-neutral-700 ${className}`}
-                />
+                <UISkeleton key={i} className={className} />
             ))}
         </>
     );
