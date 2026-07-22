@@ -1,5 +1,1 @@
-{
-  "rootDirectory": "apps/www",
-  "buildCommand": "pnpm --filter @msgsync/framework build && pnpm build",
-  "framework": "nextjs"
-}
+{}
