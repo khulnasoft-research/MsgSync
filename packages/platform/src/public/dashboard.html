@@ -1,801 +1,702 @@
 <!DOCTYPE html>
-<html lang="en">
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MsgSync Console | Enterprise Messaging</title>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <style>
-        :root {
-            --primary: #8b5cf6;
-            --primary-glow: rgba(139, 92, 246, 0.4);
-            --bg: #030712;
-            --sidebar-bg: #09090b;
-            --card-bg: rgba(17, 24, 39, 0.7);
-            --border: rgba(255, 255, 255, 0.08);
-            --text: #f9fafb;
-            --text-muted: #94a3b8;
-            --success: #10b981;
-            --error: #ef4444;
-            --warning: #f59e0b;
-            --sidebar-width: 260px;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Outfit', sans-serif;
-            background-color: var(--bg);
-            color: var(--text);
-            display: flex;
-            min-height: 100vh;
-            overflow-x: hidden;
-            background-image:
-                radial-gradient(circle at 0% 0%, rgba(139, 92, 246, 0.15) 0%, transparent 40%),
-                radial-gradient(circle at 100% 100%, rgba(139, 92, 246, 0.1) 0%, transparent 40%);
-        }
-
-        /* Sidebar */
-        aside {
-            width: var(--sidebar-width);
-            background: var(--sidebar-bg);
-            border-right: 1px solid var(--border);
-            display: flex;
-            flex-direction: column;
-            padding: 1.5rem;
-            position: fixed;
-            height: 100vh;
-            z-index: 50;
-        }
-
-        .logo {
-            font-size: 1.25rem;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            color: var(--text);
-            margin-bottom: 2.5rem;
-            letter-spacing: -0.025em;
-        }
-
-        .logo i {
-            color: var(--primary);
-        }
-
-        nav {
-            display: flex;
-            flex-direction: column;
-            gap: 0.25rem;
-            flex: 1;
-            overflow-y: auto;
-            scrollbar-width: thin;
-        }
-
-        .workspace-switcher {
-            display: flex;
-            align-items: center;
-            gap: 0.625rem;
-            padding: 0.75rem;
-            margin-bottom: 1rem;
-            border: 1px solid var(--border);
-            border-radius: 0.625rem;
-            background: rgba(255,255,255,.035);
-            font-size: .75rem;
-        }
-        .workspace-switcher strong, .workspace-switcher small { display: block; }
-        .workspace-switcher small { color: var(--text-muted); margin-top: .125rem; }
-        .workspace-switcher > i { width: 14px; margin-left: auto; color: var(--text-muted); }
-        .workspace-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--success); box-shadow: 0 0 0 4px rgba(16,185,129,.12); }
-        .nav-section { color: #64748b; text-transform: uppercase; letter-spacing: .12em; font-size: .625rem; font-weight: 700; padding: .9rem .75rem .35rem; }
-        .live-dot { margin-left: auto; font-size: .55rem; color: var(--success); letter-spacing: .08em; }
-        .nav-item svg { width: 16px; height: 16px; }
-
-        .nav-item {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            padding: 0.75rem 1rem;
-            border-radius: 0.5rem;
-            color: var(--text-muted);
-            text-decoration: none;
-            transition: all 0.2s;
-            font-weight: 500;
-            font-size: 0.9375rem;
-        }
-
-        .nav-item:hover,
-        .nav-item.active {
-            background: rgba(255, 255, 255, 0.05);
-            color: var(--text);
-        }
-
-        .nav-item.active {
-            background: var(--primary);
-            color: white;
-            box-shadow: 0 4px 12px var(--primary-glow);
-        }
-
-        /* Main Content */
-        main {
-            margin-left: var(--sidebar-width);
-            flex: 1;
-            padding: 2.5rem;
-            max-width: 1400px;
-        }
-
-        header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 2.5rem;
-        }
-
-        .welcome h1 {
-            font-size: 1.75rem;
-            font-weight: 600;
-            margin-bottom: 0.25rem;
-        }
-
-        .welcome p {
-            color: var(--text-muted);
-            font-size: 0.875rem;
-        }
-
-        .actions {
-            display: flex;
-            gap: 1rem;
-        }
-
-        .btn {
-            background: var(--card-bg);
-            border: 1px solid var(--border);
-            color: var(--text);
-            padding: 0.625rem 1.25rem;
-            border-radius: 0.5rem;
-            font-size: 0.875rem;
-            font-weight: 500;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            transition: all 0.2s;
-        }
-
-        .btn:hover {
-            background: rgba(255, 255, 255, 0.1);
-            border-color: rgba(255, 255, 255, 0.2);
-        }
-
-        .btn-primary {
-            background: var(--primary);
-            border: none;
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px var(--primary-glow);
-        }
-
-        /* Stats & Charts */
-        .stats-row {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-        }
-
-        .glass-card {
-            background: var(--card-bg);
-            backdrop-filter: blur(12px);
-            border: 1px solid var(--border);
-            border-radius: 1rem;
-            padding: 1.5rem;
-        }
-
-        .stat-card-inner {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .stat-card-inner .label {
-            color: var(--text-muted);
-            font-size: 0.75rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin-bottom: 0.5rem;
-        }
-
-        .stat-card-inner .value {
-            font-size: 1.75rem;
-            font-weight: 700;
-            margin-bottom: 0.25rem;
-        }
-
-        .stat-card-inner .trend {
-            font-size: 0.75rem;
-            display: flex;
-            align-items: center;
-            gap: 0.25rem;
-        }
-
-        .trend.up {
-            color: var(--success);
-        }
-
-        .trend.down {
-            color: var(--error);
-        }
-
-        .charts-row {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-        }
-
-        .chart-container {
-            height: 300px;
-            position: relative;
-        }
-
-        /* Table */
-        .activity-card {
-            padding: 0;
-        }
-
-        .activity-card .card-header {
-            padding: 1.5rem;
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .activity-card h2 {
-            font-size: 1.125rem;
-            font-weight: 600;
-        }
-
-        .table-wrap {
-            overflow-x: auto;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            text-align: left;
-        }
-
-        th {
-            padding: 1rem 1.5rem;
-            font-size: 0.75rem;
-            font-weight: 600;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            border-bottom: 1px solid var(--border);
-        }
-
-        td {
-            padding: 1rem 1.5rem;
-            font-size: 0.875rem;
-            border-bottom: 1px solid var(--border);
-        }
-
-        tr:last-child td {
-            border-bottom: none;
-        }
-
-        .badge {
-            padding: 0.25rem 0.625rem;
-            border-radius: 0.375rem;
-            font-size: 0.75rem;
-            font-weight: 600;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.25rem;
-        }
-
-        .badge-success {
-            background: rgba(16, 185, 129, 0.1);
-            color: var(--success);
-        }
-
-        .badge-error {
-            background: rgba(239, 68, 68, 0.1);
-            color: var(--error);
-        }
-
-        .badge-warning {
-            background: rgba(245, 158, 11, 0.1);
-            color: var(--warning);
-        }
-
-        .badge-info {
-            background: rgba(59, 130, 246, 0.1);
-            color: #3b82f6;
-        }
-
-        /* Utilities */
-        #loading-bar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            height: 3px;
-            background: var(--primary);
-            z-index: 1000;
-            transition: width 0.3s ease;
-            width: 0;
-        }
-
-        @media (max-width: 1024px) {
-            :root {
-                --sidebar-width: 220px;
-            }
-
-            main {
-                padding: 2rem;
-            }
-
-            .stats-row {
-                grid-template-columns: repeat(2, 1fr);
-            }
-
-            .charts-row {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        @media (max-width: 720px) {
-            body {
-                display: block;
-            }
-
-            aside {
-                width: 100%;
-                height: auto;
-                min-height: auto;
-                position: relative;
-                padding: 1rem;
-                border-right: 0;
-                border-bottom: 1px solid var(--border);
-            }
-
-            .logo {
-                margin-bottom: 1rem;
-            }
-
-            nav {
-                display: grid;
-                grid-template-columns: repeat(2, minmax(0, 1fr));
-                gap: 0.375rem;
-            }
-
-            .nav-item {
-                padding: 0.625rem 0.75rem;
-                font-size: 0.8125rem;
-            }
-
-            .user-profile {
-                display: none !important;
-            }
-
-            main {
-                margin-left: 0;
-                padding: 1.25rem;
-            }
-
-            header {
-                align-items: flex-start;
-                flex-direction: column;
-                gap: 1rem;
-                margin-bottom: 1.5rem;
-            }
-
-            .actions {
-                width: 100%;
-            }
-
-            .actions .btn {
-                flex: 1;
-                justify-content: center;
-            }
-
-            .stats-row {
-                grid-template-columns: 1fr;
-                gap: 0.875rem;
-            }
-
-            .glass-card {
-                padding: 1.125rem;
-            }
-
-            .activity-card .card-header {
-                align-items: flex-start;
-                flex-direction: column;
-                gap: 0.875rem;
-            }
-
-            .activity-card .card-header .actions,
-            .activity-card input {
-                width: 100% !important;
-            }
-        }
-    </style>
-</head>
-
-<body>
-    <div id="loading-bar"></div>
-
-    <aside>
-        <div class="logo">
-            <i data-lucide="zap"></i>
-            <span>MsgSync Console</span>
-        </div>
-        <div class="workspace-switcher">
-            <span class="workspace-dot"></span>
-            <div><strong>Default Org</strong><small>Production</small></div>
-            <i data-lucide="chevrons-up-down"></i>
-        </div>
-        <nav aria-label="Primary navigation">
-            <span class="nav-section">Overview</span>
-            <a href="/dashboard" class="nav-item active"><i data-lucide="layout-dashboard"></i> Dashboard</a>
-            <a href="/analytics" class="nav-item"><i data-lucide="activity"></i> Live Monitor <b class="live-dot">LIVE</b></a>
-            <a href="/analytics" class="nav-item"><i data-lucide="bar-chart-3"></i> Analytics</a>
-            <span class="nav-section">Messaging</span>
-            <a href="/campaigns" class="nav-item"><i data-lucide="send"></i> Messages</a>
-            <a href="/campaigns" class="nav-item"><i data-lucide="megaphone"></i> Campaigns</a>
-            <a href="/clients" class="nav-item"><i data-lucide="contact"></i> Contacts</a>
-            <a href="/settings" class="nav-item"><i data-lucide="badge-check"></i> Sender IDs</a>
-            <span class="nav-section">Infrastructure</span>
-            <a href="/coverage" class="nav-item"><i data-lucide="server"></i> Providers</a>
-            <a href="/routing" class="nav-item"><i data-lucide="route"></i> Routing</a>
-            <a href="/lookups" class="nav-item"><i data-lucide="scan-search"></i> HLR / MNP</a>
-            <a href="/coverage" class="nav-item"><i data-lucide="network"></i> SMPP &amp; SS7</a>
-            <span class="nav-section">Workspace</span>
-            <a href="/billing" class="nav-item"><i data-lucide="credit-card"></i> Billing</a>
-            <a href="/security" class="nav-item"><i data-lucide="shield-check"></i> Security</a>
-            <a href="/audits" class="nav-item"><i data-lucide="scroll-text"></i> Audit Logs</a>
-            <a href="/docs" target="_blank" class="nav-item"><i data-lucide="book-open"></i> API Docs</a>
-        </nav>
-        <div class="user-profile"
-            style="margin-top: auto; padding-top: 1rem; border-top: 1px solid var(--border); display: flex; align-items: center; gap: 0.75rem;">
-            <div
-                style="width: 32px; height: 32px; border-radius: 50%; background: var(--primary); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.75rem;">
-                AD</div>
-            <div>
-                <div style="font-size: 0.8125rem; font-weight: 600;">Admin User</div>
-                <div style="font-size: 0.6875rem; color: var(--text-muted);">Default Organization</div>
-            </div>
-        </div>
-    </aside>
-
-    <main>
-        <header>
-            <div class="welcome">
-                <div style="display:flex;align-items:center;gap:.5rem;color:var(--text-muted);font-size:.75rem;margin-bottom:.5rem"><span>Workspace</span><i data-lucide="chevron-right" style="width:12px"></i><span style="color:var(--text)">Overview</span></div>
-                <h1>Good morning, Admin</h1>
-                <p>Monitor delivery performance across your messaging infrastructure.</p>
-            </div>
-            <div class="actions">
-                <span class="badge badge-success" style="padding:.6rem .75rem"><span style="width:6px;height:6px;border-radius:50%;background:currentColor"></span> All systems operational</span>
-                <button class="btn" onclick="refreshData()"><i data-lucide="refresh-cw"></i> Sync</button>
-                <button class="btn btn-primary" onclick="newMessage()"><i data-lucide="plus"></i> New Message</button>
-            </div>
-        </header>
-
-        <div class="stats-row">
-            <div class="glass-card">
-                <div class="stat-card-inner">
-                    <span class="label">Volume</span>
-                    <span class="value" id="total-count">0</span>
-                    <span class="trend up"><i data-lucide="trending-up"></i> Total messages processed</span>
-                </div>
-            </div>
-            <div class="glass-card">
-                <div class="stat-card-inner">
-                    <span class="label">Delivered</span>
-                    <span class="value" id="sent-count" style="color: var(--success)">0</span>
-                    <span class="trend up"><i data-lucide="check-circle"></i> Successfully sent</span>
-                </div>
-            </div>
-            <div class="glass-card">
-                <div class="stat-card-inner">
-                    <span class="label">Failures</span>
-                    <span class="value" id="failed-count" style="color: var(--error)">0</span>
-                    <span class="trend down"><i data-lucide="alert-circle"></i> Delivery errors</span>
-                </div>
-            </div>
-            <div class="glass-card">
-                <div class="stat-card-inner">
-                    <span class="label">Performance</span>
-                    <span class="value" id="success-rate">0%</span>
-                    <div id="performance-bar"
-                        style="height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; margin-top: 4px; overflow: hidden;">
-                        <div id="performance-fill" style="height: 100%; background: var(--success); width: 0%;"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="charts-row">
-            <div class="glass-card">
-                <div class="card-header" style="margin-bottom: 1.5rem;">
-                    <h2 style="font-size: 1rem;">Delivery Performance (24h)</h2>
-                </div>
-                <div class="chart-container">
-                    <canvas id="trendChart"></canvas>
-                </div>
-            </div>
-            <div class="glass-card">
-                <div class="card-header" style="margin-bottom: 1.5rem;">
-                    <h2 style="font-size: 1rem;">Status Distribution</h2>
-                </div>
-                <div class="chart-container">
-                    <canvas id="statusChart"></canvas>
-                </div>
-            </div>
-            <div class="glass-card">
-                <div class="card-header" style="margin-bottom: 1.5rem;">
-                    <h2 style="font-size: 1rem;">Volume by Provider</h2>
-                </div>
-                <div class="chart-container">
-                    <canvas id="providerChart"></canvas>
-                </div>
-            </div>
-        </div>
-
-        <div class="glass-card activity-card">
-            <div class="card-header">
-                <h2>Recent Transmissions</h2>
-                <div class="actions">
-                    <div style="position: relative;">
-                        <i data-lucide="search"
-                            style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 14px; height: 14px; color: var(--text-muted);"></i>
-                        <input type="text" placeholder="Search recipients..."
-                            style="background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: 0.375rem; padding: 0.5rem 0.75rem 0.5rem 2rem; color: white; font-size: 0.75rem; width: 200px;">
-                    </div>
-                </div>
-            </div>
-            <div class="table-wrap">
-                <table id="message-table">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Recipient</th>
-                            <th>Content</th>
-                            <th>Provider</th>
-                            <th>Status</th>
-                            <th>Time</th>
-                        </tr>
-                    </thead>
-                    <tbody id="message-list">
-                        <!-- Loaded via JS -->
-                    </tbody>
-                </table>
-            </div>
-        </div>
-        <div class="glass-card activity-card" style="margin-top: 2rem;">
-            <div class="card-header" style="background: rgba(0,0,0,0.4);">
-                <h2
-                    style="font-size: 0.875rem; color: var(--primary); display: flex; align-items: center; gap: 0.5rem;">
-                    <i data-lucide="terminal" style="width: 14px; height: 14px;"></i>
-                    Real-time Platform Logs
-                </h2>
-                <div style="font-size: 0.7rem; color: var(--text-muted);">Watch the engine in action</div>
-            </div>
-            <div id="log-console"
-                style="height: 150px; background: #000; padding: 1rem; font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; overflow-y: auto; color: #a5b4fc;">
-                <div style="color: #6366f1;">[SYSTEM] MsgSync Engine v1.0 initialized...</div>
-                <div style="color: #6366f1;">[SYSTEM] Monitoring delivery queue...</div>
-            </div>
-        </div>
-    </main>
-
-    <script>
-        lucide.createIcons();
-        const API_KEY = 'demo-api-key';
-        let trendChart, statusChart, providerChart;
-        let latestMessages = [];
-
-        function newMessage() {
-            const recipient = window.prompt('Recipient phone number');
-            if (!recipient) return;
-            const content = window.prompt('Message content');
-            if (!content) return;
-            const log = document.getElementById('log-console');
-            log.insertAdjacentHTML('afterbegin', `<div style="color:#34d399">[QUEUE] Message queued for ${recipient} · ${content.slice(0, 48)}</div>`);
-            refreshData();
-        }
-
-        async function refreshData() {
-            const bar = document.getElementById('loading-bar');
-            bar.style.width = '30%';
-
-            try {
-                // Parallel fetching
-                const [msgRes, statsRes, trendRes, providerRes] = await Promise.all([
-                    fetch('/api/messages', { headers: { 'X-API-Key': API_KEY } }),
-                    fetch('/api/analytics/stats', { headers: { 'X-API-Key': API_KEY } }),
-                    fetch('/api/analytics/trends', { headers: { 'X-API-Key': API_KEY } }),
-                    fetch('/api/analytics/volume-by-provider', { headers: { 'X-API-Key': API_KEY } })
-                ]);
-
-                const messages = await msgRes.json();
-                const stats = await statsRes.json();
-                const trends = await trendRes.json();
-                const providers = await providerRes.json();
-
-                bar.style.width = '70%';
-
-                if (messages.status === 'success' && stats.status === 'success' && trends.status === 'success' && providers.status === 'success') {
-                    updateUI(messages.data, stats.data, trends.data, providers.data);
-                }
-
-                bar.style.width = '100%';
-                setTimeout(() => bar.style.width = '0', 500);
-            } catch (err) {
-                console.error('Fetch error:', err);
-                bar.style.width = '0';
-            }
-        }
-
-        function updateUI(messages, stats, trends, providers) {
-            // Update counts
-            document.getElementById('total-count').innerText = stats.total.toLocaleString();
-            document.getElementById('sent-count').innerText = (stats.sent + stats.delivered).toLocaleString();
-            document.getElementById('failed-count').innerText = stats.failed.toLocaleString();
-
-            const rate = stats.successRate || 0;
-            document.getElementById('success-rate').innerText = rate + '%';
-            document.getElementById('performance-fill').style.width = rate + '%';
-            document.getElementById('performance-fill').style.background = rate < 80 ? 'var(--error)' : (rate < 95 ? 'var(--warning)' : 'var(--success)');
-
-            // Update Table
-            latestMessages = messages;
-            renderMessages();
-
-            // Update Charts
-            updateCharts(stats, trends, providers);
-        }
-
-        function renderMessages() {
-            const query = document.querySelector('.activity-card input')?.value.trim().toLowerCase() || '';
-            const list = document.getElementById('message-list');
-            const messages = latestMessages.filter(msg => !query || [msg.recipient, msg.content, msg.provider, msg.id].some(value => String(value || '').toLowerCase().includes(query)));
-            list.innerHTML = messages.map(msg => `
-                <tr>
-                    <td style="font-family: monospace; font-size: 0.7rem; color: var(--text-muted)">${msg.id.slice(0, 8)}...</td>
-                    <td style="font-weight: 500">${msg.recipient}</td>
-                    <td style="max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${msg.content}</td>
-                    <td style="color: var(--text-muted)">${msg.provider || '—'}</td>
-                    <td>
-                        <span class="badge ${getStatusClass(msg.status)}">
-                            <i data-lucide="${getStatusIcon(msg.status)}" style="width: 10px; height: 10px;"></i>
-                            ${msg.status}
-                        </span>
-                    </td>
-                    <td style="color: var(--text-muted); font-size: 0.75rem;">${new Date(msg.createdAt).toLocaleTimeString()}</td>
-                </tr>
-            `).join('');
-            lucide.createIcons({ props: { parent: list } });
-        }
-
-        document.querySelector('.activity-card input')?.addEventListener('input', renderMessages);
-
-        function getStatusClass(status) {
-            switch (status) {
-                case 'sent': case 'delivered': return 'badge-success';
-                case 'failed': return 'badge-error';
-                case 'queued': case 'sending': return 'badge-info';
-                default: return 'badge-warning';
-            }
-        }
-
-        function getStatusIcon(status) {
-            switch (status) {
-                case 'sent': case 'delivered': return 'check';
-                case 'failed': return 'x';
-                case 'queued': return 'clock';
-                default: return 'help-circle';
-            }
-        }
-
-        function updateCharts(stats, trends, providers) {
-            // Trend Chart
-            const trendCtx = document.getElementById('trendChart').getContext('2d');
-            const labels = trends.map(t => t.hour + ':00');
-            const data = trends.map(t => t.count);
-
-            if (trendChart) trendChart.destroy();
-            trendChart = new Chart(trendCtx, {
-                type: 'line',
-                data: {
-                    labels,
-                    datasets: [{
-                        label: 'Messages',
-                        data: data,
-                        borderColor: '#8b5cf6',
-                        backgroundColor: 'rgba(139, 92, 246, 0.1)',
-                        fill: true,
-                        tension: 0.4,
-                        borderWidth: 2,
-                        pointRadius: 0,
-                        pointHoverRadius: 4
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#64748b', font: { size: 10 } } },
-                        x: { grid: { display: false }, ticks: { color: '#64748b', font: { size: 10 } } }
-                    }
-                }
-            });
-
-            // Status Chart
-            const statusCtx = document.getElementById('statusChart').getContext('2d');
-            if (statusChart) statusChart.destroy();
-            statusChart = new Chart(statusCtx, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Sent', 'Failed', 'Other'],
-                    datasets: [{
-                        data: [stats.sent + stats.delivered, stats.failed, stats.queued + stats.sending],
-                        backgroundColor: ['#10b981', '#ef4444', '#3b82f6'],
-                        borderWidth: 0,
-                        hoverOffset: 4
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { position: 'bottom', labels: { color: '#64748b', usePointStyle: true, font: { size: 10 } } }
-                    },
-                    cutout: '70%'
-                }
-            });
-
-            // Provider Chart
-            const providerCtx = document.getElementById('providerChart').getContext('2d');
-            if (providerChart) providerChart.destroy();
-            providerChart = new Chart(providerCtx, {
-                type: 'bar',
-                data: {
-                    labels: providers.map(p => p.provider),
-                    datasets: [{
-                        label: 'Messages',
-                        data: providers.map(p => p.count),
-                        backgroundColor: '#8b5cf6',
-                        borderRadius: 4
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#64748b', font: { size: 10 } } },
-                        x: { grid: { display: false }, ticks: { color: '#64748b', font: { size: 10 } } }
-                    }
-                }
-            });
-        }
-
-        refreshData();
-        setInterval(refreshData, 30000);
-    </script>
-</body>
-
-</html>
+<html class="dark" lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{colors:{"inverse-surface":"#dfe2ee","background":"#0f131c","surface-variant":"#31353e","tertiary-fixed-dim":"#d0bcff","on-surface":"#dfe2ee","tertiary-container":"#b395ff","on-primary":"#003640","primary-fixed":"#acedff","surface-container-low":"#181c24","on-tertiary":"#3c0091","outline":"#869397","surface":"#0f131c","secondary-fixed-dim":"#4edea3","surface-container-highest":"#31353e","on-tertiary-container":"#4900ae","on-primary-fixed-variant":"#004e5c","tertiary":"#d0bcff","inverse-primary":"#00687a","on-tertiary-fixed-variant":"#5516be","surface-dim":"#0f131c","inverse-on-surface":"#2c3039","on-secondary":"#003824","primary":"#4cd7f6","on-background":"#dfe2ee","secondary":"#4edea3","on-primary-container":"#00424f","on-surface-variant":"#bcc9cd","surface-container":"#1c2028","outline-variant":"#3d494c","surface-container-lowest":"#0a0e16","on-primary-fixed":"#001f26","on-secondary-fixed":"#002113","on-secondary-container":"#00311f","primary-fixed-dim":"#4cd7f6","primary-container":"#06b6d4","surface-container-high":"#262a33","on-error-container":"#ffdad6","error":"#ffb4ab","tertiary-fixed":"#e9ddff","error-container":"#93000a","on-secondary-fixed-variant":"#005236","on-error":"#690005","on-tertiary-fixed":"#23005c","surface-bright":"#353942","secondary-fixed":"#6ffbbe","secondary-container":"#00a572","surface-tint":"#4cd7f6"},borderRadius:{DEFAULT:"0.125rem",lg:"0.25rem",xl:"0.5rem",full:"0.75rem"},spacing:{"margin-desktop":"1.25rem","gutter-desktop":"1rem","space-lg":"1rem",gutter:"0.75rem","space-xl":"1.5rem","space-sm":"0.5rem",margin:"0.75rem","space-md":"0.75rem","space-xs":"0.25rem"},fontFamily:{"headline-lg-mobile":["Inter"],"label-md":["Inter"],"headline-lg":["Inter"],"label-sm":["Inter"],"body-sm":["Inter"],"code-metric-lg":["\"JetBrains Mono, Fira Code, monospace\""],"title-md":["Inter"],"headline-xl":["Inter"],"body-md":["Inter"],"code-metric":["\"JetBrains Mono, Fira Code, monospace\""]},fontSize:{"headline-lg-mobile":["18px",{lineHeight:"24px",letterSpacing:"-0.01em",fontWeight:"600"}],"label-md":["11px",{lineHeight:"14px",letterSpacing:"0.04em",fontWeight:"600"}],"headline-lg":["20px",{lineHeight:"28px",letterSpacing:"-0.015em",fontWeight:"600"}],"label-sm":["10px",{lineHeight:"12px",letterSpacing:"0.06em",fontWeight:"600"}],"body-sm":["12px",{lineHeight:"16px",letterSpacing:"0em",fontWeight:"400"}],"code-metric-lg":["22px",{lineHeight:"28px",letterSpacing:"-0.02em",fontWeight:"600"}],"title-md":["15px",{lineHeight:"20px",letterSpacing:"-0.01em",fontWeight:"600"}],"headline-xl":["28px",{lineHeight:"36px",letterSpacing:"-0.02em",fontWeight:"600"}],"body-md":["13px",{lineHeight:"18px",letterSpacing:"0em",fontWeight:"400"}],"code-metric":["12px",{lineHeight:"16px",letterSpacing:"-0.01em",fontWeight:"500"}]}}}}</script></head><body class="bg-surface font-body-md text-on-surface antialiased"><header class="fixed top-0 left-0 right-0 z-50 h-14 bg-surface-container-low/95 backdrop-blur-xl border-b border-outline-variant flex items-center justify-between px-margin-desktop"><div class="flex items-center gap-space-md"><div class="flex items-center gap-space-sm"><img alt="MsgSync Brand Logo" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1XbuBmz4SY3z5PzFKn38JwlD40rv8Z81YeWw8JzKMqsS0kfO0ceXYq2mn-vQeYk8ksJisfD5Z_as_RdvSe3lh5ObpvpBm-RvalsMKwqQt06R2fIOpe25FpeVjRI-oWa0cqZGfQC6Oqhg0KlaBHGjCn-rnWxlx_yrvc3a-hPISXhK-cO_dADQ2A4tQV9gNeMaoXdJYinWTqV3kxY1M3AEzrcLQ-0jl1zSkiYfVu-U8Hx"/><span class="font-headline-lg text-headline-lg text-primary tracking-tight">MsgSync</span><span class="font-label-sm text-label-sm uppercase px-space-xs py-0.5 rounded bg-surface-container-high text-primary border border-outline-variant">NOC CONSOLE</span></div><div class="h-5 w-px bg-outline-variant"></div><button class="flex items-center gap-space-xs px-space-sm py-1 rounded bg-surface-container text-on-surface hover:bg-surface-container-high transition-colors font-body-sm text-body-sm border border-outline-variant"><span class="material-symbols-outlined text-primary text-[16px]">domain</span><span class="font-title-md text-title-md font-semibold text-on-surface">GlobalTel Direct (Tier-1)</span><span class="material-symbols-outlined text-on-surface-variant text-[16px]">expand_more</span></button><div class="flex items-center gap-space-xs px-space-sm py-1 rounded bg-surface-container-lowest border border-outline-variant"><span class="relative flex h-2 w-2"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-secondary opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-secondary"></span></span><span class="font-code-metric text-code-metric text-secondary font-semibold">PROD-US-EAST-1</span><span class="material-symbols-outlined text-on-surface-variant text-[14px]">sync</span></div></div><div class="flex items-center gap-space-md flex-1 max-w-2xl mx-space-md"><div class="relative w-full"><span class="material-symbols-outlined absolute left-2.5 top-2 text-[16px] text-outline">search</span><input class="w-full h-8 pl-8 pr-12 rounded bg-surface-container-lowest border border-outline-variant text-on-surface placeholder:text-outline font-body-sm text-body-sm focus:outline-none focus:border-primary" placeholder="⌘K Quick search messages, point codes, MSISDN, providers..." type="text"/><kbd class="absolute right-2 top-1.5 px-1.5 py-0.5 rounded bg-surface-container text-outline text-[10px] font-code-metric border border-outline-variant">⌘K</kbd></div><div class="hidden xl:flex items-center gap-space-xs px-space-sm py-1 rounded bg-surface-container-lowest border border-outline-variant text-on-surface-variant font-code-metric text-code-metric whitespace-nowrap"><span class="text-outline">System MPS:</span><span class="text-primary font-semibold">1,287</span><span class="text-outline-variant">|</span><span class="text-outline">DLR Rate:</span><span class="text-secondary font-semibold">99.98%</span><span class="text-outline-variant">|</span><span class="text-outline">BullMQ:</span><span class="text-on-surface font-semibold">0 lag</span></div></div><div class="flex items-center gap-space-sm"><div class="flex items-center gap-space-xs px-space-sm py-1 rounded bg-surface-container-lowest border border-outline-variant text-secondary font-code-metric text-code-metric"><span class="h-1.5 w-1.5 rounded-full bg-secondary"></span><span>NOC STREAM: CONNECTED</span></div><button class="relative p-1.5 rounded bg-surface-container text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors border border-outline-variant"><span class="material-symbols-outlined text-[18px]">notifications</span><span class="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-on-primary font-label-sm text-label-sm font-bold">3</span></button><button class="p-1.5 rounded bg-surface-container text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors border border-outline-variant"><span class="material-symbols-outlined text-[18px]">terminal</span></button><div class="flex items-center gap-space-xs pl-space-xs"><img alt="Profile" class="w-8 h-8 rounded-full object-cover border border-outline-variant" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBrH8s-pLSUEYJ4VYVjCsv0AmkomG7LtLjhDN8bo9amympnQUXeGcvndkl4nllATsIvDywaUVb3H7cYvk0xRkr1JSIhUFCu5PAzPOiXHi0BZyayjSw7oHrSGdk_X20J7FXPHUYXB7oFbaZKaaCIhuqxPHQK0Kk70UqYX7tszTWhzTPohqwPxxR_F7Akewm37dvSGBqorJRfL057dYGSknuIqHfPEYdeMm_iherSf4Y"/><div class="hidden lg:flex flex-col text-left"><span class="font-title-md text-title-md text-on-surface font-semibold leading-tight">Marcus Vance</span><span class="font-label-sm text-label-sm text-on-surface-variant">VP Infrastructure</span></div></div></div></header><aside class="fixed left-0 top-14 bottom-8 w-64 bg-surface-container-low border-r border-outline-variant z-40 flex flex-col justify-between overflow-y-auto"><div class="p-space-sm"><div class="px-space-sm py-space-xs"><span class="font-label-sm text-label-sm uppercase tracking-wider text-outline font-semibold">OVERVIEW</span></div><nav class="flex flex-col gap-0.5 mb-space-sm" data-active-classes="bg-primary-container text-on-primary-container font-semibold shadow-[0_0_8px_rgba(6,182,212,0.25)]"><a aria-current="page" class="flex items-center justify-between px-space-sm py-1.5 rounded transition-colors bg-primary-container text-on-primary-container font-semibold shadow-[0_0_8px_rgba(6,182,212,0.25)]" data-path="dashboard" href="#"><div class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-[18px]">dashboard</span><span>Dashboard</span></div><span class="font-label-sm text-label-sm px-1.5 py-0.2 rounded bg-surface-container-high text-primary border border-outline-variant">CORE</span></a><a class="flex items-center justify-between px-space-sm py-1.5 rounded text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors font-body-sm text-body-sm" data-path="live-monitor" href="#"><div class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-[18px]">monitoring</span><span>Live Monitor</span></div><span class="flex items-center gap-1 font-label-sm text-label-sm px-1.5 py-0.5 rounded bg-secondary/15 text-secondary border border-secondary/40 font-code-metric"><span class="h-1.5 w-1.5 rounded-full bg-secondary animate-pulse"></span>LIVE</span></a></nav><div class="px-space-sm py-space-xs"><span class="font-label-sm text-label-sm uppercase tracking-wider text-outline font-semibold">MESSAGING</span></div><nav class="flex flex-col gap-0.5 mb-space-sm" data-active-classes="bg-primary-container text-on-primary-container font-semibold shadow-[0_0_8px_rgba(6,182,212,0.25)]"><a class="flex items-center gap-space-xs px-space-sm py-1.5 rounded text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors font-body-sm text-body-sm" data-path="message-center" href="#"><span class="material-symbols-outlined text-[18px]">chat</span><span>Message Center</span></a><a class="flex items-center gap-space-xs px-space-sm py-1.5 rounded text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors font-body-sm text-body-sm" data-path="otp-service" href="#"><span class="material-symbols-outlined text-[18px]">key</span><span>OTP Service</span></a><a class="flex items-center gap-space-xs px-space-sm py-1.5 rounded text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors font-body-sm text-body-sm" data-path="campaigns" href="#"><span class="material-symbols-outlined text-[18px]">campaign</span><span>Campaigns</span></a><a class="flex items-center gap-space-xs px-space-sm py-1.5 rounded text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors font-body-sm text-body-sm" data-path="contacts-and-segments" href="#"><span class="material-symbols-outlined text-[18px]">group</span><span>Contacts & Segments</span></a><a class="flex items-center gap-space-xs px-space-sm py-1.5 rounded text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors font-body-sm text-body-sm" data-path="sender-ids" href="#"><span class="material-symbols-outlined text-[18px]">badge</span><span>Sender IDs</span></a></nav><div class="px-space-sm py-space-xs"><span class="font-label-sm text-label-sm uppercase tracking-wider text-outline font-semibold">TELECOM & ROUTING</span></div><nav class="flex flex-col gap-0.5 mb-space-sm" data-active-classes="bg-primary-container text-on-primary-container font-semibold shadow-[0_0_8px_rgba(6,182,212,0.25)]"><a class="flex items-center justify-between px-space-sm py-1.5 rounded text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors font-body-sm text-body-sm" data-path="smpp-connections" href="#"><div class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-[18px]">settings_ethernet</span><span>SMPP Connections</span></div><span class="font-code-metric text-label-sm px-1.5 py-0.5 rounded bg-surface-container text-secondary border border-outline-variant">12 active</span></a><a class="flex items-center gap-space-xs px-space-sm py-1.5 rounded text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors font-body-sm text-body-sm" data-path="ss7-sigtran" href="#"><span class="material-symbols-outlined text-[18px]">hub</span><span>SS7 / SIGTRAN</span></a><a class="flex items-center gap-space-xs px-space-sm py-1.5 rounded text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors font-body-sm text-body-sm" data-path="providers" href="#"><span class="material-symbols-outlined text-[18px]">lan</span><span>Providers</span></a><a class="flex items-center gap-space-xs px-space-sm py-1.5 rounded text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors font-body-sm text-body-sm" data-path="intelligent-routing" href="#"><span class="material-symbols-outlined text-[18px]">alt_route</span><span>Intelligent Routing</span></a><a class="flex items-center gap-space-xs px-space-sm py-1.5 rounded text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors font-body-sm text-body-sm" data-path="hlr-mnp-lookup" href="#"><span class="material-symbols-outlined text-[18px]">find_in_page</span><span>HLR / MNP Lookup</span></a></nav><div class="px-space-sm py-space-xs"><span class="font-label-sm text-label-sm uppercase tracking-wider text-outline font-semibold">MANAGEMENT & BILLING</span></div><nav class="flex flex-col gap-0.5 mb-space-sm" data-active-classes="bg-primary-container text-on-primary-container font-semibold shadow-[0_0_8px_rgba(6,182,212,0.25)]"><a class="flex items-center gap-space-xs px-space-sm py-1.5 rounded text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors font-body-sm text-body-sm" data-path="billing-and-credit-ledger" href="#"><span class="material-symbols-outlined text-[18px]">account_balance_wallet</span><span>Billing & Credit Ledger</span></a><a class="flex items-center gap-space-xs px-space-sm py-1.5 rounded text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors font-body-sm text-body-sm" data-path="organizations-and-tenants" href="#"><span class="material-symbols-outlined text-[18px]">corporate_fare</span><span>Organizations & Tenants</span></a></nav><div class="px-space-sm py-space-xs"><span class="font-label-sm text-label-sm uppercase tracking-wider text-outline font-semibold">DEVELOPER & PLATFORM</span></div><nav class="flex flex-col gap-0.5" data-active-classes="bg-primary-container text-on-primary-container font-semibold shadow-[0_0_8px_rgba(6,182,212,0.25)]"><a class="flex items-center gap-space-xs px-space-sm py-1.5 rounded text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors font-body-sm text-body-sm" data-path="developer-portal-and-apis" href="#"><span class="material-symbols-outlined text-[18px]">api</span><span>Developer Portal & APIs</span></a><a class="flex items-center gap-space-xs px-space-sm py-1.5 rounded text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors font-body-sm text-body-sm" data-path="security-center" href="#"><span class="material-symbols-outlined text-[18px]">security</span><span>Security Center</span></a><a class="flex items-center gap-space-xs px-space-sm py-1.5 rounded text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors font-body-sm text-body-sm" data-path="observability-and-queues" href="#"><span class="material-symbols-outlined text-[18px]">bar_chart</span><span>Observability & Queues</span></a></nav></div><div class="p-space-sm border-t border-outline-variant bg-surface-container-lowest"><div class="flex items-center justify-between font-label-sm text-label-sm text-outline"><span class="uppercase">NOC ENGINE V4.8.2</span><span class="text-secondary font-code-metric">ALL NODES UP</span></div></div></aside><div class="pl-64"><main class="w-full pt-14 pb-8 min-h-screen bg-surface px-margin-desktop"><div class="flex flex-col w-full">
+<div class="flex flex-col gap-space-lg pb-space-xl">
+<!-- Top Operational Control Banner -->
+<div class="flex flex-col lg:flex-row lg:items-center justify-between gap-space-md p-space-md rounded-lg bg-surface-container-low shadow-sm">
+<div class="flex flex-col gap-0.5">
+<div class="flex items-center gap-space-xs">
+<span class="inline-flex h-2.5 w-2.5 rounded-full bg-primary animate-pulse"></span>
+<span class="font-headline-lg text-headline-lg text-on-surface tracking-tight">Carrier Network Operations Center (NOC)</span>
+<span class="font-label-sm text-label-sm uppercase px-2 py-0.5 rounded bg-surface-container-high text-primary">REALTIME FEED</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Real-time telemetry across multi-protocol SMS routing, delivery receipts, and carrier throughput</p>
+</div>
+<div class="flex flex-wrap items-center gap-space-sm">
+<!-- Timeframe Segmented Control -->
+<div class="inline-flex p-0.5 rounded bg-surface-container-lowest" id="timeframe-selector">
+<button class="px-2.5 py-1 text-label-md font-label-md rounded bg-primary text-on-primary transition-all" data-tf="live">Live (Last 5m)</button>
+<button class="px-2.5 py-1 text-label-md font-label-md rounded text-on-surface-variant hover:text-on-surface transition-all" data-tf="1h">1h</button>
+<button class="px-2.5 py-1 text-label-md font-label-md rounded text-on-surface-variant hover:text-on-surface transition-all" data-tf="24h">24h</button>
+<button class="px-2.5 py-1 text-label-md font-label-md rounded text-on-surface-variant hover:text-on-surface transition-all" data-tf="7d">7d</button>
+<button class="px-2.5 py-1 text-label-md font-label-md rounded text-on-surface-variant hover:text-on-surface transition-all" data-tf="custom">Custom</button>
+</div>
+<div class="h-6 w-px bg-surface-variant"></div>
+<!-- Operational Action Triggers -->
+<button class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded bg-surface-container hover:bg-surface-container-high text-on-surface text-label-md font-label-md transition-colors shadow-sm">
+<span class="material-symbols-outlined text-[16px] text-primary">download</span>
+          Export Telemetry
+        </button>
+<button class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded bg-surface-container hover:bg-surface-container-high text-on-surface text-label-md font-label-md transition-colors shadow-sm">
+<span class="material-symbols-outlined text-[16px] text-secondary">verified_user</span>
+          SLA Audit
+        </button>
+<button class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded bg-primary text-on-primary hover:bg-primary-container text-label-md font-label-md font-semibold transition-all shadow-sm">
+<span class="material-symbols-outlined text-[16px]">bolt</span>
+          Simulate Load
+        </button>
+</div>
+</div>
+<!-- 8 High-Density Top KPI Cards -->
+<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 xl:grid-cols-8 gap-space-sm">
+<!-- KPI 1: Total Messages Sent -->
+<div class="flex flex-col justify-between p-space-sm rounded bg-surface-container-low shadow-sm relative overflow-hidden group hover:bg-surface-container transition-all">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm uppercase text-outline">Total Sent (Today)</span>
+<span class="material-symbols-outlined text-primary text-[16px]">send</span>
+</div>
+<div class="my-1.5">
+<div class="font-code-metric-lg text-code-metric-lg text-on-surface font-bold tracking-tight">14,892,410</div>
+<div class="flex items-center gap-1 font-label-sm text-label-sm text-secondary mt-0.5">
+<span class="material-symbols-outlined text-[12px]">trending_up</span>
+<span>+14.2% vs yest.</span>
+</div>
+</div>
+<div class="h-6 w-full pt-1">
+<svg class="w-full h-full text-secondary" fill="none" preserveaspectratio="none" viewbox="0 0 100 24">
+<path d="M0 20 L15 17 L30 18 L45 12 L60 14 L75 8 L90 10 L100 3" stroke="currentColor" stroke-linecap="round" stroke-width="2"></path>
+</svg>
+</div>
+</div>
+<!-- KPI 2: Delivered (DLR Ack) -->
+<div class="flex flex-col justify-between p-space-sm rounded bg-surface-container-low shadow-sm relative overflow-hidden group hover:bg-surface-container transition-all">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm uppercase text-outline">DLR Confirmed</span>
+<span class="material-symbols-outlined text-secondary text-[16px]">check_circle</span>
+</div>
+<div class="my-1.5">
+<div class="font-code-metric-lg text-code-metric-lg text-secondary font-bold tracking-tight">14,845,920</div>
+<div class="flex items-center justify-between font-label-sm text-label-sm text-on-surface-variant mt-0.5">
+<span>Rate: <strong class="text-secondary font-code-metric">99.69%</strong></span>
+<span class="text-outline">SLA 99.5%</span>
+</div>
+</div>
+<div class="h-6 w-full pt-1">
+<svg class="w-full h-full text-primary" fill="none" preserveaspectratio="none" viewbox="0 0 100 24">
+<path d="M0 16 L20 15 L40 10 L60 8 L80 6 L100 4" stroke="currentColor" stroke-linecap="round" stroke-width="2"></path>
+</svg>
+</div>
+</div>
+<!-- KPI 3: Failed / Undelivered -->
+<div class="flex flex-col justify-between p-space-sm rounded bg-surface-container-low shadow-sm relative overflow-hidden group hover:bg-surface-container transition-all">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm uppercase text-outline">Undelivered</span>
+<span class="material-symbols-outlined text-error text-[16px]">error</span>
+</div>
+<div class="my-1.5">
+<div class="font-code-metric-lg text-code-metric-lg text-error font-bold tracking-tight">46,490</div>
+<div class="flex items-center justify-between font-label-sm text-label-sm text-on-surface-variant mt-0.5">
+<span class="text-error font-code-metric">0.31% drop</span>
+<span class="text-outline">62% absent</span>
+</div>
+</div>
+<div class="w-full bg-surface-variant h-1 rounded-full overflow-hidden mt-2">
+<div class="bg-error h-full" style="width: 14%"></div>
+</div>
+</div>
+<!-- KPI 4: Current Throughput -->
+<div class="flex flex-col justify-between p-space-sm rounded bg-surface-container-low shadow-sm relative overflow-hidden group hover:bg-surface-container transition-all">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm uppercase text-outline">Throughput</span>
+<span class="material-symbols-outlined text-primary text-[16px]">speed</span>
+</div>
+<div class="my-1.5">
+<div class="flex items-baseline gap-1">
+<span class="font-code-metric-lg text-code-metric-lg text-primary font-bold tracking-tight">1,287</span>
+<span class="font-label-sm text-label-sm text-outline">MPS</span>
+</div>
+<div class="flex items-center justify-between font-label-sm text-label-sm text-on-surface-variant mt-0.5">
+<span>Pk: 2,410</span>
+<span class="text-secondary">53.6% cap</span>
+</div>
+</div>
+<div class="w-full bg-surface-variant h-1 rounded-full overflow-hidden mt-2">
+<div class="bg-primary h-full" style="width: 53.6%"></div>
+</div>
+</div>
+<!-- KPI 5: Active Carrier Connections -->
+<div class="flex flex-col justify-between p-space-sm rounded bg-surface-container-low shadow-sm relative overflow-hidden group hover:bg-surface-container transition-all">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm uppercase text-outline">Carriers</span>
+<span class="material-symbols-outlined text-secondary text-[16px]">settings_ethernet</span>
+</div>
+<div class="my-1.5">
+<div class="flex items-baseline gap-1">
+<span class="font-code-metric-lg text-code-metric-lg text-secondary font-bold tracking-tight">48/48</span>
+<span class="font-label-sm text-label-sm text-secondary">UP</span>
+</div>
+<div class="font-label-sm text-label-sm text-outline truncate mt-0.5">12 SMPP • 8 SS7 • 28 HTTP</div>
+</div>
+<div class="flex items-center gap-1 mt-2">
+<span class="h-1.5 flex-1 bg-secondary rounded-full"></span>
+<span class="h-1.5 flex-1 bg-secondary rounded-full"></span>
+<span class="h-1.5 flex-1 bg-secondary rounded-full"></span>
+<span class="h-1.5 flex-1 bg-secondary rounded-full"></span>
+</div>
+</div>
+<!-- KPI 6: Delivery Latency -->
+<div class="flex flex-col justify-between p-space-sm rounded bg-surface-container-low shadow-sm relative overflow-hidden group hover:bg-surface-container transition-all">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm uppercase text-outline">Latency p95</span>
+<span class="material-symbols-outlined text-tertiary text-[16px]">timer</span>
+</div>
+<div class="my-1.5">
+<div class="flex items-baseline gap-1">
+<span class="font-code-metric-lg text-code-metric-lg text-tertiary font-bold tracking-tight">78</span>
+<span class="font-label-sm text-label-sm text-tertiary font-code-metric">ms</span>
+</div>
+<div class="font-label-sm text-label-sm text-outline truncate mt-0.5">SMPP: 42ms | SS7: 110ms</div>
+</div>
+<div class="h-6 w-full pt-1">
+<svg class="w-full h-full text-tertiary" fill="none" preserveaspectratio="none" viewbox="0 0 100 24">
+<path d="M0 12 L20 18 L40 6 L60 14 L80 10 L100 12" stroke="currentColor" stroke-linecap="round" stroke-width="2"></path>
+</svg>
+</div>
+</div>
+<!-- KPI 7: Monthly Spend -->
+<div class="flex flex-col justify-between p-space-sm rounded bg-surface-container-low shadow-sm relative overflow-hidden group hover:bg-surface-container transition-all">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm uppercase text-outline">Spend (MTD)</span>
+<span class="material-symbols-outlined text-on-surface-variant text-[16px]">account_balance_wallet</span>
+</div>
+<div class="my-1.5">
+<div class="font-code-metric-lg text-code-metric-lg text-on-surface font-bold tracking-tight">$142.8k</div>
+<div class="flex items-center gap-1 font-label-sm text-label-sm text-secondary mt-0.5">
+<span class="material-symbols-outlined text-[12px]">arrow_downward</span>
+<span>-3.4% via LCR</span>
+</div>
+</div>
+<div class="font-label-sm text-label-sm text-outline mt-2 truncate">Avg $0.0096/SMS</div>
+</div>
+<!-- KPI 8: Available Prepaid Credits -->
+<div class="flex flex-col justify-between p-space-sm rounded bg-surface-container-low shadow-sm relative overflow-hidden group hover:bg-surface-container transition-all">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm uppercase text-outline">Prepaid Bal.</span>
+<span class="material-symbols-outlined text-secondary text-[16px]">account_balance</span>
+</div>
+<div class="my-1.5">
+<div class="font-code-metric-lg text-code-metric-lg text-secondary font-bold tracking-tight">$489,120</div>
+<div class="flex items-center justify-between font-label-sm text-label-sm text-on-surface-variant mt-0.5">
+<span class="text-secondary font-semibold">~94 days</span>
+<span class="text-outline">runway</span>
+</div>
+</div>
+<div class="w-full bg-surface-variant h-1 rounded-full overflow-hidden mt-2">
+<div class="bg-secondary h-full" style="width: 82%"></div>
+</div>
+</div>
+</div>
+<!-- Primary Visualizations (60% / 40% Split) -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-space-md">
+<!-- Left (60%): Real-Time MPS & Latency Stream Graph -->
+<div class="lg:col-span-7 xl:col-span-8 flex flex-col p-space-md rounded-lg bg-surface-container-low shadow-md">
+<div class="flex flex-wrap items-center justify-between gap-space-sm pb-space-sm">
+<div class="flex items-center gap-space-sm">
+<span class="font-title-md text-title-md text-on-surface font-semibold">Real-Time MPS & Delivery Latency Stream</span>
+<div class="flex items-center gap-1.5 px-2 py-0.5 rounded bg-surface-container font-code-metric text-label-sm text-primary">
+<span class="h-1.5 w-1.5 rounded-full bg-primary animate-ping"></span>
+<span>1s sampling</span>
+</div>
+</div>
+<div class="flex items-center gap-space-md font-code-metric text-label-sm">
+<div class="flex items-center gap-1.5">
+<span class="h-2 w-4 bg-primary rounded-sm"></span>
+<span class="text-on-surface-variant">Throughput (MPS)</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="h-0.5 w-4 bg-tertiary"></span>
+<span class="text-on-surface-variant">p95 Latency (ms)</span>
+</div>
+</div>
+</div>
+<!-- SVG Dual Axis Graph Area -->
+<div class="relative w-full h-64 mt-2">
+<!-- Background Axis Ticks -->
+<div class="absolute inset-0 flex flex-col justify-between pointer-events-none opacity-20">
+<div class="w-full h-px bg-outline-variant flex items-center justify-between text-[10px] font-code-metric px-1"><span>2,500 MPS</span><span>200ms</span></div>
+<div class="w-full h-px bg-outline-variant flex items-center justify-between text-[10px] font-code-metric px-1"><span>1,875 MPS</span><span>150ms</span></div>
+<div class="w-full h-px bg-outline-variant flex items-center justify-between text-[10px] font-code-metric px-1"><span>1,250 MPS</span><span>100ms</span></div>
+<div class="w-full h-px bg-outline-variant flex items-center justify-between text-[10px] font-code-metric px-1"><span>625 MPS</span><span>50ms</span></div>
+<div class="w-full h-px bg-outline-variant flex items-center justify-between text-[10px] font-code-metric px-1"><span>0 MPS</span><span>0ms</span></div>
+</div>
+<!-- Dual Axis Paths -->
+<svg class="w-full h-full overflow-visible" preserveaspectratio="none" viewbox="0 0 800 240">
+<defs>
+<lineargradient id="mpsGradient" x1="0" x2="0" y1="0" y2="1">
+<stop offset="0%" stop-color="#06b6d4" stop-opacity="0.35"></stop>
+<stop offset="100%" stop-color="#06b6d4" stop-opacity="0.0"></stop>
+</lineargradient>
+</defs>
+<!-- MPS Area Fill -->
+<path d="M0,170 C50,165 90,140 130,135 C170,130 210,150 250,120 C290,90 330,105 370,85 C410,65 450,110 490,95 C530,80 570,95 610,75 C650,55 690,80 730,60 C760,45 780,55 800,50 L800,240 L0,240 Z" fill="url(#mpsGradient)"></path>
+<!-- MPS Line -->
+<path d="M0,170 C50,165 90,140 130,135 C170,130 210,150 250,120 C290,90 330,105 370,85 C410,65 450,110 490,95 C530,80 570,95 610,75 C650,55 690,80 730,60 C760,45 780,55 800,50" fill="none" stroke="#4cd7f6" stroke-width="2.5"></path>
+<!-- Latency Dashed Line -->
+<path d="M0,150 C60,140 110,160 180,155 C240,150 300,165 360,145 C420,125 480,130 540,140 C600,150 660,135 720,130 C760,125 780,135 800,128" fill="none" stroke="#d0bcff" stroke-dasharray="4,4" stroke-width="2"></path>
+<!-- Live Ping Marker -->
+<circle class="animate-ping" cx="800" cy="50" fill="#4cd7f6" r="4"></circle>
+<circle cx="800" cy="50" fill="#4cd7f6" r="3.5"></circle>
+<circle cx="800" cy="128" fill="#d0bcff" r="3.5"></circle>
+</svg>
+</div>
+<!-- Telemetry Graph Summary Footer -->
+<div class="grid grid-cols-2 sm:grid-cols-4 gap-space-sm pt-space-sm mt-space-sm border-t border-surface-variant">
+<div>
+<span class="font-label-sm text-label-sm uppercase text-outline">Current Queue</span>
+<div class="font-code-metric text-code-metric text-on-surface font-semibold">142 msgs</div>
+</div>
+<div>
+<span class="font-label-sm text-label-sm uppercase text-outline">Queue Ingest</span>
+<div class="font-code-metric text-code-metric text-secondary font-semibold">1,310 MPS</div>
+</div>
+<div>
+<span class="font-label-sm text-label-sm uppercase text-outline">BullMQ Drain</span>
+<div class="font-code-metric text-code-metric text-primary font-semibold">1,287 MPS</div>
+</div>
+<div>
+<span class="font-label-sm text-label-sm uppercase text-outline">Buffer Saturation</span>
+<div class="font-code-metric text-code-metric text-secondary font-semibold">4.8% Nominal</div>
+</div>
+</div>
+</div>
+<!-- Right (40%): Protocol & Gateway Distribution Donut + Breakdown -->
+<div class="lg:col-span-5 xl:col-span-4 flex flex-col justify-between p-space-md rounded-lg bg-surface-container-low shadow-md">
+<div class="flex items-center justify-between pb-space-xs">
+<span class="font-title-md text-title-md text-on-surface font-semibold">Protocol Ingest Distribution</span>
+<span class="font-label-sm text-label-sm px-2 py-0.5 rounded bg-surface-container text-on-surface-variant font-code-metric">v3.4 / REST</span>
+</div>
+<div class="flex items-center justify-center my-space-sm relative">
+<!-- Donut Inline SVG -->
+<svg class="w-44 h-44 -rotate-90" viewbox="0 0 100 100">
+<!-- Background Ring -->
+<circle cx="50" cy="50" fill="transparent" r="38" stroke="#1c2028" stroke-width="12"></circle>
+<!-- SMPP 3.4 (64.2%) -> stroke-dasharray="153 238" -->
+<circle cx="50" cy="50" fill="transparent" r="38" stroke="#4cd7f6" stroke-dasharray="153.2 238.7" stroke-dashoffset="0" stroke-width="12"></circle>
+<!-- HTTP REST (23.8%) -> stroke-dasharray="56.8 238" -->
+<circle cx="50" cy="50" fill="transparent" r="38" stroke="#4edea3" stroke-dasharray="56.8 238.7" stroke-dashoffset="-153.2" stroke-width="12"></circle>
+<!-- SS7/SIGTRAN (9.5%) -> stroke-dasharray="22.7 238" -->
+<circle cx="50" cy="50" fill="transparent" r="38" stroke="#d0bcff" stroke-dasharray="22.7 238.7" stroke-dashoffset="-210" stroke-width="12"></circle>
+<!-- Custom Carrier IP (2.5%) -> stroke-dasharray="6.0 238" -->
+<circle cx="50" cy="50" fill="transparent" r="38" stroke="#ffb4ab" stroke-dasharray="6.0 238.7" stroke-dashoffset="-232.7" stroke-width="12"></circle>
+</svg>
+<div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+<span class="font-code-metric-lg text-code-metric-lg font-bold text-on-surface">1,287</span>
+<span class="font-label-sm text-label-sm uppercase text-outline">AGGREGATE MPS</span>
+</div>
+</div>
+<!-- Protocol Breakdown List -->
+<div class="flex flex-col gap-space-xs font-body-sm text-body-sm pt-2">
+<div class="flex items-center justify-between p-1.5 rounded bg-surface-container hover:bg-surface-container-high transition-colors">
+<div class="flex items-center gap-2">
+<span class="h-2 w-2 rounded-full bg-primary"></span>
+<span class="font-code-metric font-semibold text-on-surface">SMPP 3.4 Bind</span>
+</div>
+<div class="flex items-center gap-3">
+<span class="font-code-metric text-on-surface-variant">826 MPS</span>
+<span class="font-code-metric text-primary font-semibold w-12 text-right">64.2%</span>
+</div>
+</div>
+<div class="flex items-center justify-between p-1.5 rounded bg-surface-container hover:bg-surface-container-high transition-colors">
+<div class="flex items-center gap-2">
+<span class="h-2 w-2 rounded-full bg-secondary"></span>
+<span class="font-code-metric font-semibold text-on-surface">HTTP REST Webhook</span>
+</div>
+<div class="flex items-center gap-3">
+<span class="font-code-metric text-on-surface-variant">306 MPS</span>
+<span class="font-code-metric text-secondary font-semibold w-12 text-right">23.8%</span>
+</div>
+</div>
+<div class="flex items-center justify-between p-1.5 rounded bg-surface-container hover:bg-surface-container-high transition-colors">
+<div class="flex items-center gap-2">
+<span class="h-2 w-2 rounded-full bg-tertiary"></span>
+<span class="font-code-metric font-semibold text-on-surface">SS7 / SIGTRAN M3UA</span>
+</div>
+<div class="flex items-center gap-3">
+<span class="font-code-metric text-on-surface-variant">122 MPS</span>
+<span class="font-code-metric text-tertiary font-semibold w-12 text-right">9.5%</span>
+</div>
+</div>
+<div class="flex items-center justify-between p-1.5 rounded bg-surface-container hover:bg-surface-container-high transition-colors">
+<div class="flex items-center gap-2">
+<span class="h-2 w-2 rounded-full bg-error"></span>
+<span class="font-code-metric font-semibold text-on-surface">Carrier Direct Tunnel</span>
+</div>
+<div class="flex items-center gap-3">
+<span class="font-code-metric text-on-surface-variant">33 MPS</span>
+<span class="font-code-metric text-error font-semibold w-12 text-right">2.5%</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Secondary Data Panels: Country Routing & Upstream Providers -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-space-md">
+<!-- Global Traffic by Country & Route Health -->
+<div class="lg:col-span-7 flex flex-col p-space-md rounded-lg bg-surface-container-low shadow-sm">
+<div class="flex items-center justify-between pb-space-sm">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-primary text-[18px]">public</span>
+<span class="font-title-md text-title-md text-on-surface font-semibold">Global Traffic & Route Performance</span>
+</div>
+<span class="font-label-sm text-label-sm text-outline font-code-metric">LEAST-COST ROUTING ACTIVE</span>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left font-body-sm text-body-sm">
+<thead>
+<tr class="text-outline uppercase font-label-sm text-label-sm border-b border-surface-variant">
+<th class="py-2 px-2">Destination</th>
+<th class="py-2 px-2">Primary Carrier</th>
+<th class="py-2 px-2 text-right">Avg Cost / SMS</th>
+<th class="py-2 px-2 text-right">DLR Success</th>
+<th class="py-2 px-2 text-right">Route Health</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-surface-variant/40 font-code-metric text-on-surface">
+<tr class="hover:bg-surface-container-high/60 transition-colors">
+<td class="py-2 px-2 flex items-center gap-2">
+<span class="font-semibold text-primary">US (+1)</span>
+<span class="text-on-surface-variant font-body-sm">North America</span>
+</td>
+<td class="py-2 px-2 text-on-surface">Tata Direct-TX</td>
+<td class="py-2 px-2 text-right text-on-surface-variant">$0.0075</td>
+<td class="py-2 px-2 text-right text-secondary font-semibold">99.88%</td>
+<td class="py-2 px-2 text-right">
+<span class="px-1.5 py-0.5 rounded text-[10px] bg-secondary/15 text-secondary font-semibold">OPTIMAL</span>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-high/60 transition-colors">
+<td class="py-2 px-2 flex items-center gap-2">
+<span class="font-semibold text-primary">GB (+44)</span>
+<span class="text-on-surface-variant font-body-sm">United Kingdom</span>
+</td>
+<td class="py-2 px-2 text-on-surface">BICS Global Hub</td>
+<td class="py-2 px-2 text-right text-on-surface-variant">$0.0182</td>
+<td class="py-2 px-2 text-right text-secondary font-semibold">99.71%</td>
+<td class="py-2 px-2 text-right">
+<span class="px-1.5 py-0.5 rounded text-[10px] bg-secondary/15 text-secondary font-semibold">OPTIMAL</span>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-high/60 transition-colors">
+<td class="py-2 px-2 flex items-center gap-2">
+<span class="font-semibold text-primary">DE (+49)</span>
+<span class="text-on-surface-variant font-body-sm">Germany</span>
+</td>
+<td class="py-2 px-2 text-on-surface">Orange Wholesale</td>
+<td class="py-2 px-2 text-right text-on-surface-variant">$0.0210</td>
+<td class="py-2 px-2 text-right text-secondary font-semibold">99.92%</td>
+<td class="py-2 px-2 text-right">
+<span class="px-1.5 py-0.5 rounded text-[10px] bg-secondary/15 text-secondary font-semibold">OPTIMAL</span>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-high/60 transition-colors">
+<td class="py-2 px-2 flex items-center gap-2">
+<span class="font-semibold text-primary">BR (+55)</span>
+<span class="text-on-surface-variant font-body-sm">Brazil</span>
+</td>
+<td class="py-2 px-2 text-on-surface">Sinch Transit Hub</td>
+<td class="py-2 px-2 text-right text-on-surface-variant">$0.0145</td>
+<td class="py-2 px-2 text-right text-primary font-semibold">98.42%</td>
+<td class="py-2 px-2 text-right">
+<span class="px-1.5 py-0.5 rounded text-[10px] bg-primary/15 text-primary font-semibold">ELEVATED</span>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-high/60 transition-colors">
+<td class="py-2 px-2 flex items-center gap-2">
+<span class="font-semibold text-primary">IN (+91)</span>
+<span class="text-on-surface-variant font-body-sm">India (DLT Reg)</span>
+</td>
+<td class="py-2 px-2 text-on-surface">Tata Comm Local</td>
+<td class="py-2 px-2 text-right text-on-surface-variant">$0.0028</td>
+<td class="py-2 px-2 text-right text-secondary font-semibold">99.55%</td>
+<td class="py-2 px-2 text-right">
+<span class="px-1.5 py-0.5 rounded text-[10px] bg-secondary/15 text-secondary font-semibold">OPTIMAL</span>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-high/60 transition-colors">
+<td class="py-2 px-2 flex items-center gap-2">
+<span class="font-semibold text-primary">SG (+65)</span>
+<span class="text-on-surface-variant font-body-sm">Singapore</span>
+</td>
+<td class="py-2 px-2 text-on-surface">SingTel Direct</td>
+<td class="py-2 px-2 text-right text-on-surface-variant">$0.0340</td>
+<td class="py-2 px-2 text-right text-secondary font-semibold">99.96%</td>
+<td class="py-2 px-2 text-right">
+<span class="px-1.5 py-0.5 rounded text-[10px] bg-secondary/15 text-secondary font-semibold">OPTIMAL</span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Upstream Provider Health & Link Status -->
+<div class="lg:col-span-5 flex flex-col p-space-md rounded-lg bg-surface-container-low shadow-sm">
+<div class="flex items-center justify-between pb-space-sm">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-secondary text-[18px]">hub</span>
+<span class="font-title-md text-title-md text-on-surface font-semibold">Upstream Carrier State</span>
+</div>
+<span class="font-label-sm text-label-sm px-2 py-0.5 rounded bg-secondary/15 text-secondary font-code-metric">5/5 CIRCUITS NOMINAL</span>
+</div>
+<div class="flex flex-col gap-space-xs">
+<!-- Provider 1 -->
+<div class="p-2.5 rounded bg-surface-container flex flex-col gap-1.5">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="h-2 w-2 rounded-full bg-secondary"></span>
+<span class="font-title-md text-title-md font-semibold text-on-surface">Tata Communications</span>
+</div>
+<span class="font-code-metric text-label-sm text-secondary">ACTIVE • SMPP</span>
+</div>
+<div class="flex items-center justify-between font-code-metric text-label-sm text-outline">
+<span>Throughput: <strong class="text-primary font-semibold">512 MPS</strong></span>
+<span>p95 Latency: <strong class="text-on-surface font-semibold">38ms</strong></span>
+<span>Err Rate: <strong class="text-secondary font-semibold">0.02%</strong></span>
+</div>
+<div class="w-full bg-surface-variant h-1 rounded-full overflow-hidden">
+<div class="bg-primary h-full" style="width: 72%"></div>
+</div>
+</div>
+<!-- Provider 2 -->
+<div class="p-2.5 rounded bg-surface-container flex flex-col gap-1.5">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="h-2 w-2 rounded-full bg-secondary"></span>
+<span class="font-title-md text-title-md font-semibold text-on-surface">BICS Global SMS</span>
+</div>
+<span class="font-code-metric text-label-sm text-secondary">ACTIVE • SIGTRAN</span>
+</div>
+<div class="flex items-center justify-between font-code-metric text-label-sm text-outline">
+<span>Throughput: <strong class="text-primary font-semibold">340 MPS</strong></span>
+<span>p95 Latency: <strong class="text-on-surface font-semibold">48ms</strong></span>
+<span>Err Rate: <strong class="text-secondary font-semibold">0.05%</strong></span>
+</div>
+<div class="w-full bg-surface-variant h-1 rounded-full overflow-hidden">
+<div class="bg-primary h-full" style="width: 58%"></div>
+</div>
+</div>
+<!-- Provider 3 -->
+<div class="p-2.5 rounded bg-surface-container flex flex-col gap-1.5">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="h-2 w-2 rounded-full bg-secondary"></span>
+<span class="font-title-md text-title-md font-semibold text-on-surface">Orange Wholesale Direct</span>
+</div>
+<span class="font-code-metric text-label-sm text-secondary">ACTIVE • SMPP</span>
+</div>
+<div class="flex items-center justify-between font-code-metric text-label-sm text-outline">
+<span>Throughput: <strong class="text-primary font-semibold">210 MPS</strong></span>
+<span>p95 Latency: <strong class="text-on-surface font-semibold">62ms</strong></span>
+<span>Err Rate: <strong class="text-secondary font-semibold">0.01%</strong></span>
+</div>
+<div class="w-full bg-surface-variant h-1 rounded-full overflow-hidden">
+<div class="bg-primary h-full" style="width: 44%"></div>
+</div>
+</div>
+<!-- Provider 4 -->
+<div class="p-2.5 rounded bg-surface-container flex flex-col gap-1.5">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="h-2 w-2 rounded-full bg-secondary"></span>
+<span class="font-title-md text-title-md font-semibold text-on-surface">Sinch Transit Hub</span>
+</div>
+<span class="font-code-metric text-label-sm text-secondary">ACTIVE • REST</span>
+</div>
+<div class="flex items-center justify-between font-code-metric text-label-sm text-outline">
+<span>Throughput: <strong class="text-primary font-semibold">165 MPS</strong></span>
+<span>p95 Latency: <strong class="text-on-surface font-semibold">84ms</strong></span>
+<span>Err Rate: <strong class="text-secondary font-semibold">0.14%</strong></span>
+</div>
+<div class="w-full bg-surface-variant h-1 rounded-full overflow-hidden">
+<div class="bg-primary h-full" style="width: 32%"></div>
+</div>
+</div>
+<!-- Provider 5 -->
+<div class="p-2.5 rounded bg-surface-container flex flex-col gap-1.5">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="h-2 w-2 rounded-full bg-secondary"></span>
+<span class="font-title-md text-title-md font-semibold text-on-surface">Twilio Direct Direct</span>
+</div>
+<span class="font-code-metric text-label-sm text-secondary">STANDBY • REST</span>
+</div>
+<div class="flex items-center justify-between font-code-metric text-label-sm text-outline">
+<span>Throughput: <strong class="text-primary font-semibold">60 MPS</strong></span>
+<span>p95 Latency: <strong class="text-on-surface font-semibold">92ms</strong></span>
+<span>Err Rate: <strong class="text-secondary font-semibold">0.00%</strong></span>
+</div>
+<div class="w-full bg-surface-variant h-1 rounded-full overflow-hidden">
+<div class="bg-primary h-full" style="width: 15%"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Real-Time Live Message Stream Table -->
+<div class="flex flex-col p-space-md rounded-lg bg-surface-container-low shadow-sm">
+<div class="flex flex-wrap items-center justify-between gap-space-sm pb-space-sm">
+<div class="flex items-center gap-space-sm">
+<div class="flex items-center gap-2">
+<span class="relative flex h-2.5 w-2.5">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-secondary opacity-75"></span>
+<span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-secondary"></span>
+</span>
+<span class="font-title-md text-title-md text-on-surface font-semibold">Live Message Ingest Stream</span>
+</div>
+<span class="font-code-metric text-label-sm px-2 py-0.5 rounded bg-surface-container text-secondary font-semibold">STREAMING 50 EPS</span>
+</div>
+<!-- Protocol & Status Filter Chips -->
+<div class="flex flex-wrap items-center gap-space-xs font-code-metric text-label-sm">
+<button class="px-2 py-1 rounded bg-primary text-on-primary font-semibold">ALL (50)</button>
+<button class="px-2 py-1 rounded bg-surface-container text-on-surface-variant hover:text-on-surface">DELIVERED</button>
+<button class="px-2 py-1 rounded bg-surface-container text-on-surface-variant hover:text-on-surface">SENT</button>
+<button class="px-2 py-1 rounded bg-surface-container text-on-surface-variant hover:text-on-surface">QUEUED</button>
+<button class="px-2 py-1 rounded bg-surface-container text-on-surface-variant hover:text-on-surface">FAILED</button>
+<button class="px-2 py-1 rounded bg-surface-container text-on-surface-variant hover:text-on-surface">RETRYING</button>
+</div>
+</div>
+<!-- Real-Time Stream Table -->
+<div class="overflow-x-auto">
+<table class="w-full text-left font-body-sm text-body-sm">
+<thead>
+<tr class="text-outline uppercase font-label-sm text-label-sm border-b border-surface-variant">
+<th class="py-2.5 px-2">Timestamp (UTC)</th>
+<th class="py-2.5 px-2">Message ID</th>
+<th class="py-2.5 px-2">Recipient</th>
+<th class="py-2.5 px-2">Sender ID</th>
+<th class="py-2.5 px-2">Protocol</th>
+<th class="py-2.5 px-2">Upstream Route</th>
+<th class="py-2.5 px-2">Status</th>
+<th class="py-2.5 px-2 text-right">Latency</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-surface-variant/40 font-code-metric text-on-surface" id="live-stream-rows">
+<tr class="hover:bg-surface-container-high/60 transition-colors">
+<td class="py-2 px-2 text-outline">14:32:08.419</td>
+<td class="py-2 px-2 text-primary font-semibold">msg_9a4f210d-8b</td>
+<td class="py-2 px-2 text-on-surface">+1 (415) ***-9921</td>
+<td class="py-2 px-2"><span class="px-1.5 py-0.5 rounded bg-surface-container text-on-surface text-[11px]">AUTH-VERIFY</span></td>
+<td class="py-2 px-2 text-on-surface-variant">SMPP-TX</td>
+<td class="py-2 px-2 text-on-surface">Tata Wholesale</td>
+<td class="py-2 px-2">
+<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-secondary/15 text-secondary text-[11px] font-semibold">
+<span class="h-1.5 w-1.5 rounded-full bg-secondary"></span>DELIVERED
+                </span>
+</td>
+<td class="py-2 px-2 text-right text-secondary font-semibold">64ms</td>
+</tr>
+<tr class="hover:bg-surface-container-high/60 transition-colors">
+<td class="py-2 px-2 text-outline">14:32:08.384</td>
+<td class="py-2 px-2 text-primary font-semibold">msg_4b1a89c2-3e</td>
+<td class="py-2 px-2 text-on-surface">+44 7911 ***829</td>
+<td class="py-2 px-2"><span class="px-1.5 py-0.5 rounded bg-surface-container text-on-surface text-[11px]">NOTIFY-2FA</span></td>
+<td class="py-2 px-2 text-on-surface-variant">HTTP-REST</td>
+<td class="py-2 px-2 text-on-surface">BICS Global</td>
+<td class="py-2 px-2">
+<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-secondary/15 text-secondary text-[11px] font-semibold">
+<span class="h-1.5 w-1.5 rounded-full bg-secondary"></span>DELIVERED
+                </span>
+</td>
+<td class="py-2 px-2 text-right text-secondary font-semibold">82ms</td>
+</tr>
+<tr class="hover:bg-surface-container-high/60 transition-colors">
+<td class="py-2 px-2 text-outline">14:32:08.210</td>
+<td class="py-2 px-2 text-primary font-semibold">msg_770e53a1-12</td>
+<td class="py-2 px-2 text-on-surface">+49 151 ***2948</td>
+<td class="py-2 px-2"><span class="px-1.5 py-0.5 rounded bg-surface-container text-on-surface text-[11px]">SECURE-BANK</span></td>
+<td class="py-2 px-2 text-on-surface-variant">SS7-M3UA</td>
+<td class="py-2 px-2 text-on-surface">Orange Wholesale</td>
+<td class="py-2 px-2">
+<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-primary/15 text-primary text-[11px] font-semibold">
+<span class="h-1.5 w-1.5 rounded-full bg-primary animate-pulse"></span>SENT
+                </span>
+</td>
+<td class="py-2 px-2 text-right text-on-surface-variant">42ms</td>
+</tr>
+<tr class="hover:bg-surface-container-high/60 transition-colors">
+<td class="py-2 px-2 text-outline">14:32:08.104</td>
+<td class="py-2 px-2 text-primary font-semibold">msg_ff82710c-99</td>
+<td class="py-2 px-2 text-on-surface">+55 11 9***-4012</td>
+<td class="py-2 px-2"><span class="px-1.5 py-0.5 rounded bg-surface-container text-on-surface text-[11px]">UBER-RIDE</span></td>
+<td class="py-2 px-2 text-on-surface-variant">SMPP-TX</td>
+<td class="py-2 px-2 text-on-surface">Sinch Transit</td>
+<td class="py-2 px-2">
+<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-error/15 text-error text-[11px] font-semibold">
+<span class="h-1.5 w-1.5 rounded-full bg-error"></span>FAILED
+                </span>
+</td>
+<td class="py-2 px-2 text-right text-error font-semibold">312ms</td>
+</tr>
+<tr class="hover:bg-surface-container-high/60 transition-colors">
+<td class="py-2 px-2 text-outline">14:32:07.950</td>
+<td class="py-2 px-2 text-primary font-semibold">msg_338a0bc4-55</td>
+<td class="py-2 px-2 text-on-surface">+91 98200 ***11</td>
+<td class="py-2 px-2"><span class="px-1.5 py-0.5 rounded bg-surface-container text-on-surface text-[11px]">HDFC-OTP</span></td>
+<td class="py-2 px-2 text-on-surface-variant">SMPP-TX</td>
+<td class="py-2 px-2 text-on-surface">Tata Comm Local</td>
+<td class="py-2 px-2">
+<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-secondary/15 text-secondary text-[11px] font-semibold">
+<span class="h-1.5 w-1.5 rounded-full bg-secondary"></span>DELIVERED
+                </span>
+</td>
+<td class="py-2 px-2 text-right text-secondary font-semibold">51ms</td>
+</tr>
+<tr class="hover:bg-surface-container-high/60 transition-colors">
+<td class="py-2 px-2 text-outline">14:32:07.822</td>
+<td class="py-2 px-2 text-primary font-semibold">msg_11c34a98-88</td>
+<td class="py-2 px-2 text-on-surface">+1 (312) ***-1109</td>
+<td class="py-2 px-2"><span class="px-1.5 py-0.5 rounded bg-surface-container text-on-surface text-[11px]">STRIPE-BILL</span></td>
+<td class="py-2 px-2 text-on-surface-variant">HTTP-REST</td>
+<td class="py-2 px-2 text-on-surface">Twilio Direct</td>
+<td class="py-2 px-2">
+<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-tertiary/15 text-tertiary text-[11px] font-semibold">
+<span class="h-1.5 w-1.5 rounded-full bg-tertiary animate-spin"></span>RETRYING
+                </span>
+</td>
+<td class="py-2 px-2 text-right text-tertiary font-semibold">184ms</td>
+</tr>
+<tr class="hover:bg-surface-container-high/60 transition-colors">
+<td class="py-2 px-2 text-outline">14:32:07.715</td>
+<td class="py-2 px-2 text-primary font-semibold">msg_ee4412a0-47</td>
+<td class="py-2 px-2 text-on-surface">+65 9123 ***4</td>
+<td class="py-2 px-2"><span class="px-1.5 py-0.5 rounded bg-surface-container text-on-surface text-[11px]">GRAB-AUTH</span></td>
+<td class="py-2 px-2 text-on-surface-variant">SMPP-TX</td>
+<td class="py-2 px-2 text-on-surface">SingTel Direct</td>
+<td class="py-2 px-2">
+<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-secondary/15 text-secondary text-[11px] font-semibold">
+<span class="h-1.5 w-1.5 rounded-full bg-secondary"></span>DELIVERED
+                </span>
+</td>
+<td class="py-2 px-2 text-right text-secondary font-semibold">39ms</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Pagination and Ingest Buffer Stats -->
+<div class="flex flex-wrap items-center justify-between gap-space-sm pt-space-sm mt-space-xs border-t border-surface-variant font-code-metric text-label-sm text-outline">
+<div class="flex items-center gap-space-sm">
+<span>Buffer: <strong class="text-on-surface font-semibold">1,000 / 10,000 entries</strong></span>
+<span>•</span>
+<span>Discard Policy: <strong class="text-secondary font-semibold">FIFO RingBuffer</strong></span>
+</div>
+<div class="flex items-center gap-2">
+<span class="text-on-surface-variant">Autoscroll active</span>
+<button class="px-2 py-0.5 rounded bg-surface-container text-on-surface hover:bg-surface-container-high transition-colors">Pause Stream</button>
+<button class="px-2 py-0.5 rounded bg-surface-container text-on-surface hover:bg-surface-container-high transition-colors">Clear Buffer</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<script>
+  // Minimal interactive state handling for timeframe buttons
+  document.querySelectorAll('#timeframe-selector button').forEach(button => {
+    button.addEventListener('click', () => {
+      document.querySelectorAll('#timeframe-selector button').forEach(b => {
+        b.className = 'px-2.5 py-1 text-label-md font-label-md rounded text-on-surface-variant hover:text-on-surface transition-all';
+      });
+      button.className = 'px-2.5 py-1 text-label-md font-label-md rounded bg-primary text-on-primary transition-all';
+    });
+  });
+</script></main></div><footer class="fixed bottom-0 left-0 right-0 z-40 h-8 bg-surface-container-lowest border-t border-outline-variant px-margin-desktop flex items-center justify-between text-on-surface-variant font-code-metric text-code-metric"><div class="flex items-center gap-space-md"><div class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-primary text-[14px]">cloud_done</span><span class="text-outline">Cluster:</span><span class="text-on-surface">AWS us-east-1a / eu-west-1b (Active-Active)</span></div><span class="text-outline-variant">|</span><div class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-secondary text-[14px]">lan</span><span class="text-outline">Protocols:</span><span class="text-on-surface">SMPP 3.4 (BIND OK) • SIGTRAN M3UA (AS ACTIVE) • REST v2.4</span></div></div><div class="flex items-center gap-space-md"><div class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-secondary text-[14px]">speed</span><span class="text-outline">Latency:</span><span class="text-secondary font-semibold">14ms p99</span></div><span class="text-outline-variant">|</span><div class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-outline text-[14px]">schedule</span><span class="text-primary font-semibold">UTC 14:32:08.419</span></div></div></footer></body></html>
