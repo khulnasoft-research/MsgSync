@@ -47,9 +47,32 @@ app.get('/login-2fa', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'login-2fa.html'));
 });
 
-// Dashboard Route
-app.get('/dashboard', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
+// Dashboard and operations console routes
+const consoleRoutes = [
+    '/dashboard',
+    '/executive',
+    '/live-operations',
+    '/live-operations/carrier-gateway',
+    '/live-operations/diagnostics',
+    '/live-operations/alerts',
+    '/carrier-noc',
+    '/carrier-gateway',
+    '/smpp',
+    '/ss7',
+    '/telemetry',
+    '/signaling',
+    '/routing',
+    '/security',
+    '/cli',
+    '/cli/history',
+    '/diagnostics',
+    '/network'
+];
+
+consoleRoutes.forEach((route) => {
+    app.get(route, (req, res) => {
+        res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
+    });
 });
 
 // Health Check
