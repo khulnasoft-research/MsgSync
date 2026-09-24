@@ -144,8 +144,9 @@ async function deleteAlert(req, res) {
 
 module.exports = {
     getStats,
-    getTrends,
-    getFinancials,
+  getTrends,
+  getVolumeByProvider,
+  getFinancials,
     getReports,
     getLiveTraffic,
     getAlerts,
