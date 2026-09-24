@@ -30,6 +30,11 @@ app.use(requestLogger);
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Open the console at the default app entrypoint.
+app.get('/', (req, res) => {
+    res.redirect('/dashboard');
+});
+
 // API Documentation
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpecs));
 
